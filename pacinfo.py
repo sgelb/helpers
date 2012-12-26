@@ -11,7 +11,7 @@ h = init_with_config("/etc/pacman.conf")
 
 def get_data():
     items = []
-    for p in sorted(h.get_localdb().pkgcache, key=lambda x: eval(options.sort), reverse=options.re):
+    for p in sorted(h.get_localdb().pkgcache, key=eval(options.sort), reverse=options.re):
         items.append([p.name, datetime.fromtimestamp(int(p.installdate)).strftime('%d.%m.%Y'),
                 convert_size(p.isize)])
     return items
@@ -26,9 +26,9 @@ def convert_size(size):
 usage = "usage: %prog [options]"
 parser = OptionParser(usage=usage)
 
-parser.add_option("-t", action="store_const", const="x.installdate", dest="sort",
+parser.add_option("-t", action="store_const", const="lambda x: x.installdate", dest="sort",
         help="sort by install time")
-parser.add_option("-s", action="store_const", const="x.isize", dest="sort",
+parser.add_option("-s", action="store_const", const="lambda x: x.isize", dest="sort",
         help="sort by install size")
 parser.add_option("-r", action="store_true", dest="re", default=False,
         help="reverse output")
