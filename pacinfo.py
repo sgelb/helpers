@@ -9,16 +9,11 @@ from datetime import datetime
 
 h = init_with_config("/etc/pacman.conf")
 
-def by_time():
+def get_data():
     items = []
-    for p in sorted(h.get_localdb().pkgcache, key=lambda x: x.installdate, reverse=options.re):
-        items.append([p.name, datetime.fromtimestamp(int(p.installdate)).strftime('%d.%m.%Y')])
-    return items
-
-def by_size():
-    items = []
-    for p in sorted(h.get_localdb().pkgcache, key=lambda x: x.isize, reverse=options.re):
-        items.append([p.name, convert_size(p.isize)])
+    for p in sorted(h.get_localdb().pkgcache, key=lambda x: eval(options.sort), reverse=options.re):
+        items.append([p.name, datetime.fromtimestamp(int(p.installdate)).strftime('%d.%m.%Y'),
+                convert_size(p.isize)])
     return items
 
 def convert_size(size):
@@ -31,18 +26,16 @@ def convert_size(size):
 usage = "usage: %prog [options]"
 parser = OptionParser(usage=usage)
 
-parser.add_option("-t", action="store_true", dest="time",
+parser.add_option("-t", action="store_const", const="x.installdate", dest="sort",
         help="sort by install time")
-parser.add_option("-s", action="store_true", dest="size",
+parser.add_option("-s", action="store_const", const="x.isize", dest="sort",
         help="sort by install size")
 parser.add_option("-r", action="store_true", dest="re", default=False,
         help="reverse output")
 (options, args) = parser.parse_args()
 
-if options.time:
-    items = by_time()
-elif options.size:
-    items = by_size()
+if options.sort:
+    items = get_data()
 else:
     parser.print_help()
     sys.exit()
@@ -50,4 +43,4 @@ else:
 max_col = max([len(i[0]) for i in items])
 
 for i in items:
-    print(str.ljust(i[0], max_col), str.rjust(i[1], 10))
+    print(str.ljust(i[0], max_col), str.ljust(i[1], 11), str.rjust(i[2], 10))
